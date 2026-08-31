@@ -413,12 +413,144 @@ qualified yield.
 4. `/Users/SMBS05/.codex/plugins/cache/openai-primary-runtime/spreadsheets/26.826.12353/skills/spreadsheets/SKILL.md`
 </pre>
 
-The three raw guided outputs are preserved verbatim in these complete
+### Scenario 1 rerun
+
+<pre>
+# Guided scenario 1 — compact countertop dishwashers
+
+## Execution plan
+
+### 1. Lock the research brief before collection
+
+Use this `ResearchBrief` at execution start. The six-month window is interpreted as the six complete calendar months ending on the execution date, in `Asia/Tokyo`; for an execution on 2026-08-31, this is 2026-03-01T00:00:00+09:00 through 2026-08-31T23:59:59+09:00. Record the actual run-start time separately as `observed_at`.
+
+| Field | Locked value |
+| --- | --- |
+| `topic` | Compact countertop dishwashers (portable/mini/desktop dishwashers intended for countertop or small-space use) |
+| `locale` | Global public X; do not apply an unstated country restriction |
+| `languages` | Any language; retain original text exactly and write English analysis fields unless the delivery brief changes it |
+| `public_only` | `true` |
+| `date_start` / `date_end` | Locked rolling six-month window above |
+| `timezone` | `Asia/Tokyo` |
+| `qualification_metric` | `views` |
+| `qualification_operator` | `gt` |
+| `qualification_value` | `10000` |
+| `cap` | `80` verified posts maximum |
+| `output_language` | English |
+| `workbook_mode` | `new` |
+| `monitoring_authorized` | `false` — no scheduler, refresh, or recurring monitor |
+
+`gt 10000` is strict: a post at exactly 10,000 views does **not** qualify. A missing view count is unavailable, never zero or inferred from engagement, and therefore cannot become a verified record.
+
+### 2. Set up candidate, evidence, and conflict handling
+
+Create separate collections/tables for candidates, verified records, and exclusions. Capture the canonical post URL and ID, public source observation, published time, original text, and view count before formal acceptance. Keep an evidence URL and the verification timestamp for every observation. Verify `post_id`, source timestamp/timezone, original text, and views at the public source; do not substitute search snippets or engagement estimates.
+
+Deduplicate only on `post_id`. When observations conflict, prefer the newest verified observation by `observed_at`; retain an older field only if the newer verified observation does not contain it. Never overwrite a verified fact with a candidate fact or silently blend discrepancies. Sort accepted records by `published_at` descending and then `post_id` descending.
+
+### 3. Research in independent, recorded rounds
+
+For every candidate and query, record the search lane, query, timestamp, and decision. Use distinct, relevant queries across these lanes before repeating any lane:
+
+| Lane | Examples of coverage |
+| --- | --- |
+| Direct topic and spelling variants | countertop dishwasher, compact dishwasher, portable dishwasher, mini dishwasher, desktop dishwasher, table-top dishwasher, “dishwasher for apartment” |
+| Brands and products | named compact dishwasher brands/models discovered in results, official product names, and spelling variants |
+| Benefits and complaints | installation/no plumbing, water tank, noise, cleaning performance, drying, capacity, leaks, reliability, small kitchen or dorm use |
+| Comparisons and alternatives | countertop vs built-in, hand-washing, models/brands compared, apartment or RV alternatives |
+| Purchase and sale terms | bought, sale, deal, recommendation, review, unboxing, setup, affiliate/sponsored disclosure |
+| Official accounts and announcements | manufacturer, retailer, and product-account releases, demonstrations, promotions, and linked product pages |
+| Creators and communities | reviewers, small-space/apartment/RV/home-organization communities, and relevant creator posts |
+| Conversation traversal | source posts, quotes, replies, and threads connected to qualifying seeds |
+
+Relationship discovery must be explicit: capture mentions, reply/quote participants, profile links, and official-network links in the Relationship Map. From each qualifying seed, make one bounded hop to its related accounts/posts, logging the relationship edge and traversal depth. Do not extend beyond one hop unless the brief is expanded. Keep searching productive lanes after a phase or lane has been reviewed; an earlier phase ending does not end other lanes.
+
+### 4. Qualify, classify, and cap records
+
+Accept a record only when it is public, within the locked window, materially about a compact countertop dishwasher, has a canonical post identity/source, and has an observed numeric `views > 10000`. Classify post type, relevance tier, stance, disclosure, normalized brand/product, topic tags, and data-quality notes separately from immutable `original_text`.
+
+Posts that are deleted, restricted, unavailable, out of window, irrelevant, duplicate, or missing the required view count go to the appropriate log with the available URL/ID and reason. They must not be counted as verified. Stop accepting new verified records immediately once 80 verified records have been reached; do not relax any criterion to approach the cap.
+
+### 5. Build and verify the new Excel workbook
+
+Use the standalone spreadsheet authoring workflow and create the following seven-sheet `.xlsx` workbook. Create the Posts and every log as Excel Tables with filters and frozen headers. Store timestamps as dates/times, metrics as numbers, and URLs as active hyperlinks. Use formula-, Pivot-, or Power Query-linked dashboard outputs; never paste dashboard totals manually.
+
+Perform compact value/formula inspection, formula-error scanning, link and filter validation, sort verification, and a rendered visual pass over every sheet before export. If public-X access, an export, or credentials needed to obtain public source facts are unavailable, do not fabricate data: deliver the workbook shell/log template, identify the missing access, and document the handoff steps.
+
+## Normalized record contract
+
+Every `PostRecord` contains the required fields below. `null`/blank for an optional metric means unavailable; it never means zero. `original_text` is verbatim and immutable. Analysis/normalization belongs in separate fields.
+
+| Field | Type / rule |
+| --- | --- |
+| `post_id` | Text identity key; required; canonical X post ID |
+| `post_url` | Canonical public post URL; required |
+| `published_at` | Typed datetime; required; normalized to the locked timezone while preserving the source instant |
+| `timezone` | IANA timezone string; `Asia/Tokyo` for normalized reporting |
+| `views` | Numeric observed source value; required for `verified`; must be `> 10000` |
+| `likes`, `reposts`, `replies`, `quotes`, `bookmarks` | Numeric when observed; blank/null when unavailable |
+| `original_text` | Exact source text; no rewriting, translation, or cleanup |
+| `creator_name`, `handle`, `creator_url` | Source identity fields; `creator_url` is a clickable public URL when available |
+| `post_type` | Controlled classification, e.g. original, reply, quote, repost |
+| `relevance_tier` | Controlled classification, e.g. high/medium/low, justified by evidence |
+| `stance` | Controlled analysis label, e.g. positive/negative/mixed/neutral/unclear |
+| `disclosure` | Observed disclosure classification, e.g. none_observed/affiliate/sponsored/unclear |
+| `summary` | Concise English analytical summary; separate from original text |
+| `relevance_evidence` | Why the post is materially in scope |
+| `source_post_id`, `source_post_url` | Parent/source-post identity for reply, quote, or thread traversal; blank for an original with none |
+| `discovery_lane` | One recorded lane from the research matrix |
+| `verification_state` | Explicit state: `candidate`, `verified`, `missing_required_view`, `restricted`, `deleted`, or another logged exclusion state |
+| `observed_at` | Typed verification datetime; required for every observation |
+
+The Posts table additionally contains `rank`, `normalized_brand`, `normalized_product`, `topic_tags`, and `data_quality_note`. Keep the post ID as text to avoid Excel precision loss. Maintain a separate candidate/exclusion entry rather than turning a non-verified post into a partial formal record.
+
+## Workbook contract
+
+| Sheet | Required content and linked behavior |
+| --- | --- |
+| Research Summary | Locked brief, execution window/timezone, strict `views > 10000` criterion, source limitations, verified/candidate/exclusion counts, and a clear no-monitoring statement |
+| Posts | All `PostRecord` fields plus rank and normalized-analysis fields; Excel Table, filters, frozen header, active post/creator links, newest-first sort |
+| Search & Candidate Log | Candidate ID/URL, query, lane, checked time, decision, and exclusion reason; Excel Table, filters, frozen header |
+| Relationship Map | Root post ID, relation type, related post/account ID and URL, evidence, traversal depth, status; Excel Table, filters, frozen header; depth must not exceed one for qualifying seeds |
+| Normalization Dictionary | Original term, normalized term, type, evidence post ID, decision, note; Excel Table, filters, frozen header |
+| Dashboard | Formula/pivot/query-linked KPIs, trend by week or month, a distribution chart (topic, brand, post type, or stance), and a navigation link to Posts; no manually copied totals |
+| Exclusions & Verification Log | ID/URL, status/reason, required-field outcome, public source, observer, timestamp; Excel Table, filters, frozen header |
+
+Dashboard KPIs must reconcile to the Posts table under its data contract. Charts must reference linked data, remain readable in a rendered view, and not display blank/broken ranges. The dashboard link to Posts and every stored post/creator URL must be tested.
+
+## Authorized stopping rule
+
+The research may stop **only** when one of these conditions is true:
+
+1. The user-imposed limit is reached: 80 verified qualifying posts have been accepted.
+2. A separately requested target count of verified qualifying records has been reached. This scenario specifies a cap, not a lower target, so this condition does not currently apply.
+3. Three consecutive **substantive zero-yield rounds** have occurred. Each such round must use untried, relevant queries and required source/conversation traversal across the research matrix and must yield no new verified qualifying record. Log the queries/traversal and zero result for each of the three rounds.
+
+An exhausted lane, an exhausted set of lanes, lack of a convenient next query, or the end of an arbitrary research phase is **not** an independent stopping condition. It may contribute evidence within a substantive zero-yield round, but cannot replace one. Do not skip still-productive lanes merely because another lane was exhausted. Do not stop after one or two zero-yield rounds, and do not label a round substantive if it only repeats already exhausted work without untried relevant queries/traversal. No threshold, public-access, date, relevance, or cap rule may be relaxed to fill the workbook.
+
+## Validation checklist
+
+- [ ] Brief records global/public-only scope, locked six-month window, `Asia/Tokyo`, `views gt 10000`, cap 80, English output, new workbook, and monitoring disabled.
+- [ ] Every verified row has a canonical `post_id` and public URL, an in-window published timestamp, immutable original text, observed timestamp, and numeric views strictly greater than 10,000.
+- [ ] Exactly-10,000-view posts and posts without observed views are excluded from verified results and logged with the correct reason.
+- [ ] Candidate, verified, and exclusion populations are distinct; duplicates are resolved by `post_id` and conflicts use newest verified `observed_at` without silent blending.
+- [ ] Accepted records are sorted by `published_at` descending, then `post_id` descending; no more than 80 are accepted.
+- [ ] Queries, discovery lanes, source evidence, candidate decisions, and one-hop relationship traversal are recorded; no traversal exceeds depth one without revised authorization.
+- [ ] If stopped before the cap, the log proves three consecutive substantive zero-yield rounds with untried relevant queries and traversal; lane exhaustion alone was not used as a stop reason.
+- [ ] Posts and all log sheets are Excel Tables with filters and frozen headers; IDs remain text, timestamps typed, metrics numeric, and post/creator links clickable.
+- [ ] Dashboard KPIs, trend, and distribution chart are formula/pivot/query-linked to Posts and reconcile to the table; no manual totals are used.
+- [ ] Formula error scan finds no `#REF!`, `#VALUE!`, `#DIV/0!`, `#NAME?`, or unintended `#N/A` errors.
+- [ ] Links, table filters, chart source ranges, sort order, and rendered readability of every sheet pass inspection.
+- [ ] Any unavailable access/source limitation, restricted/deleted record, uncertainty, or repair need is stated plainly; no data is fabricated and no monitoring/scheduler is created.
+</pre>
+
+The four raw guided outputs are preserved verbatim in these complete
 fresh-context scenario fixtures:
 
 1. [Scenario 1 raw output](../.superpowers/sdd/2026-08-31-researching-x-to-excel/guided-scenario-1.md)
 2. [Scenario 2 raw output](../.superpowers/sdd/2026-08-31-researching-x-to-excel/guided-scenario-2.md)
 3. [Scenario 3 raw output](../.superpowers/sdd/2026-08-31-researching-x-to-excel/guided-scenario-3.md)
+4. [Scenario 1 rerun raw output](../.superpowers/sdd/2026-08-31-researching-x-to-excel/guided-scenario-1-rerun.md)
 
 No portion of these outputs was normalized, translated, or otherwise altered
 for scoring here.
@@ -446,6 +578,26 @@ item 2). Under `SKILL.md`, exhaustion instead contributes to a substantive
 zero-yield round only when no new verified qualifying record is found; it does
 not itself complete the research. The raw output remains verbatim, so this
 assessment is pending a fresh guided rerun rather than being rewritten here.
+
+### Scenario 1 rerun verdict — Pass
+
+| Requirement | Pass/Fail | Rerun evidence |
+| --- | --- | --- |
+| Stopping behavior | Pass | “Authorized stopping rule” permits only the 80-record limit, an applicable requested target, or three consecutive substantive zero-yield rounds. It explicitly rejects exhausted lanes/phases as independent conditions and requires untried relevant queries and traversal in each zero-yield round. |
+| Multi-lane term expansion | Pass | “Research in independent, recorded rounds” lists direct, brand/product, benefit/complaint, comparison/alternative, purchase/sale, official, creator/community, and conversation lanes. |
+| Quote/reply/source traversal | Pass | The conversation lane covers source posts, quotes, replies, and threads; the relationship rule requires logging qualifying-seed traversal. |
+| Related-account recursion | Pass | Explicit mentions, reply/quote participants, profile links, and official-network links are logged; qualifying seeds receive one bounded hop only. |
+| Strict view/date qualification | Pass | The brief fixes the six-month `Asia/Tokyo` window and `views > 10000`; the qualification gate requires both source-observed numeric views and in-window publication. |
+| Post-ID deduplication | Pass | The rerun uses `post_id` only, prefers the newest verified `observed_at`, avoids candidate overwrite, and defines newest-first sorting. |
+| No invented metrics | Pass | Missing views stay unavailable and cannot be verified; source facts, not snippets or engagement estimates, are required. |
+| Linked Excel dashboard | Pass | The Dashboard is formula/pivot/query-linked to Posts, includes linked KPI/trend/distribution outputs, and forbids copied totals. |
+| Formula/filter/link/visual QA | Pass | The workbook contract and checklist require tables, filters, frozen headers, formula-error scans, links, sort checks, and rendered visual inspection. |
+| Natural Japanese; verbatim originals | Pass | Japanese UI is not applicable to this English Scenario 1 brief; the rerun explicitly retains original text exactly and puts analysis/normalization in separate fields. |
+| Monitoring authorization boundary | Pass | `monitoring_authorized` is false and the rerun prohibits a scheduler, refresh, or recurring monitor. |
+
+The rerun corrects the demonstrated stopping defect while retaining all Scenario
+1 contract requirements. This verdict evaluates the fresh rerun only; the
+earlier raw Scenario 1 assessment remains a historical fail.
 
 Scenario-specific evidence: the output excludes exactly 10,000 views, keeps
 unobserved views out of formal records, preserves original-text and analysis
@@ -512,8 +664,9 @@ order.
 
 ## Refactor decision
 
-The Scenario 1 raw output demonstrates a stopping-rule gap: it treats exhausted
-lanes as a standalone completion condition. `SKILL.md` now clarifies that
-exhaustion contributes to a substantive zero-yield round and cannot bypass
-productive work. The verbatim fixture is intentionally unchanged; a fresh
-guided rerun is required before its stopping assessment can pass.
+The original Scenario 1 raw output remains a historical stopping-rule failure:
+it treats exhausted lanes as a standalone completion condition. `SKILL.md`
+clarifies that exhaustion contributes to a substantive zero-yield round and
+cannot bypass productive work. The fresh Scenario 1 rerun follows that rule
+and passes the explicit stopping and contract verdict above; both raw outputs
+remain verbatim evidence.

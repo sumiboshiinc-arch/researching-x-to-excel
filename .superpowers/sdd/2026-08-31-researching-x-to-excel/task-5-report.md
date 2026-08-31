@@ -2,15 +2,17 @@
 
 ## Outcome
 
-Created [tests/guided-results.md](../../../tests/guided-results.md) with all
-three guided raw outputs reproduced verbatim, one ten-row verdict table per
-scenario, scenario-specific evidence, and an exact mapping from every
-demonstrated baseline gap to the corrective Skill or reference passage.
+Created [tests/guided-results.md](../../../tests/guided-results.md) with four
+guided raw outputs reproduced verbatim, one ten-row verdict table per original
+scenario, a complete Scenario 1 rerun verdict, scenario-specific evidence, and
+an exact mapping from every demonstrated baseline gap to the corrective Skill
+or reference passage.
 
-All thirty ten-row table items pass, but the separate Scenario 1 stopping
-assessment is failed pending a fresh rerun: its preserved raw output treats
-exhausted lanes as an independent completion condition. The guided outputs
-otherwise correctly cover:
+All thirty original ten-row table items pass. The original Scenario 1 stopping
+assessment remains a historical failure because its preserved raw output treats
+exhausted lanes as an independent completion condition. The fresh Scenario 1
+rerun passes its explicit stopping assessment and all Scenario 1 contract
+items. The guided outputs cover:
 
 - natural Japanese UI and separate analytical Japanese fields for the Japanese
   beauty brief, while preserving original post text verbatim;
@@ -25,11 +27,13 @@ otherwise correctly cover:
 - no scheduler or recurring monitor without explicit authorization supplying
   cadence, scope, destination, and notification preference.
 
-The Scenario 1 stopping gap was demonstrated. `SKILL.md` now clarifies that
+The Scenario 1 stopping gap was demonstrated. `SKILL.md` clarifies that
 exhaustion is not a standalone completion condition; it contributes to a
-substantive zero-yield round, and productive work cannot be skipped. The raw
-guided output remains verbatim, so a fresh rerun is required before claiming
-that Scenario 1 follows the clarified stopping rule.
+substantive zero-yield round, and productive work cannot be skipped. The fresh
+rerun uses only the authorized conditions, explicitly rejects lane exhaustion
+as a separate stop reason, and requires untried relevant queries plus traversal
+for each substantive zero-yield round. Both the failed original and passing
+rerun are preserved verbatim.
 
 ## Validation
 
@@ -46,5 +50,5 @@ Results:
 - Unit tests: 5 passed.
 - Installation test: passed, including its expected refusal to replace an
   existing installed path.
-- SKILL.md word count: 753 (under 900).
+- SKILL.md word count: 772 (under 900).
 - git diff --check: clean.
