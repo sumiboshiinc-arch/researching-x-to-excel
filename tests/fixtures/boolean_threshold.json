@@ -1,1 +1,1 @@
-{"brief": {"view_threshold": {"operator": "gt", "value": true}}, "records": []}
+{"brief": {"qualification_operator": "gt", "qualification_value": true, "date_start": "2026-08-01T00:00:00Z", "date_end": "2026-08-31T23:59:59Z"}, "records": []}

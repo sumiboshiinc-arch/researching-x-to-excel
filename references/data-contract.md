@@ -14,7 +14,7 @@ preset, workbook_mode, existing_workbook_path, monitoring_authorized
 
 Authorized monitoring also records `prior_observation_at` or `initial_lookback`, workbook path, unchanged qualification rule, sheets to update, `dedupe_key=post_id`, formula/filter/link/chart/dashboard QA, and a zero-new-results report. It never silently broadens scope or thresholds.
 
-The validator prefers the `{ "brief": ..., "records": [...] }` envelope. For legacy root arrays, pass `--operator` and `--value` plus optional date bounds; implicit qualification defaults are forbidden.
+The validator prefers the `{ "brief": ..., "records": [...] }` envelope. Envelopes use flat `qualification_operator` and `qualification_value` and require timezone-aware `date_start` and `date_end`. A nested `view_threshold: {operator, value}` is accepted only as a legacy envelope alias. For legacy root arrays, pass `--operator` and `--value` plus optional date bounds; implicit qualification defaults are forbidden.
 
 Each `PostRecord` has these required fields:
 

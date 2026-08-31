@@ -10,7 +10,10 @@ POST_URL = re.compile(r"^https://x\.com/[A-Za-z0-9_]{1,15}/status/(\d+)$")
 CREATOR_URL = re.compile(r"^https://x\.com/[A-Za-z0-9_]{1,15}/?$")
 
 def err(code: str, message: str) -> dict[str, str]: return {"code": code, "message": message}
-def finite(value: Any) -> bool: return not isinstance(value, bool) and isinstance(value, (int, float)) and math.isfinite(value)
+def finite(value: Any) -> bool:
+    if isinstance(value, bool): return False
+    if isinstance(value, int): return True
+    return isinstance(value, float) and math.isfinite(value)
 def aware(value: Any) -> datetime | None:
     if not isinstance(value, str): return None
     try: parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
@@ -19,20 +22,24 @@ def aware(value: Any) -> datetime | None:
 
 def validate_payload(payload: Any, override: dict[str, Any] | None = None) -> list[dict[str, str]]:
     errors: list[dict[str, str]] = []
+    envelope = isinstance(payload, dict)
     if isinstance(payload, list): records, brief = payload, override or {}
     elif isinstance(payload, dict):
         records, brief = payload.get("records"), payload.get("brief")
         if not isinstance(brief, dict): errors.append(err("invalid_brief", "brief must be an object")); brief = {}
     else: return [err("invalid_payload", "payload must be an object or a records array")]
     if not isinstance(records, list): return errors + [err("invalid_records", "records must be an array")]
-    threshold = brief.get("view_threshold", {})
-    if not isinstance(threshold, dict): return errors + [err("invalid_threshold", "view_threshold must be an object")]
-    operator, limit = threshold.get("operator"), threshold.get("value")
-    if operator not in {"gt", "gte"} or not finite(limit): return errors + [err("invalid_threshold", "view_threshold requires operator gt/gte and a finite numeric value")]
+    if "qualification_operator" in brief or "qualification_value" in brief:
+        operator, limit = brief.get("qualification_operator"), brief.get("qualification_value")
+    else:
+        threshold = brief.get("view_threshold", {})
+        if not isinstance(threshold, dict): return errors + [err("invalid_threshold", "legacy view_threshold must be an object")]
+        operator, limit = threshold.get("operator"), threshold.get("value")
+    if operator not in {"gt", "gte"} or not finite(limit): return errors + [err("invalid_threshold", "qualification_operator must be gt/gte and qualification_value must be finite numeric")]
     start = aware(brief.get("date_start")) if "date_start" in brief else None
     end = aware(brief.get("date_end")) if "date_end" in brief else None
-    if "date_start" in brief and start is None: errors.append(err("invalid_date_window", "date_start must be timezone-aware ISO 8601"))
-    if "date_end" in brief and end is None: errors.append(err("invalid_date_window", "date_end must be timezone-aware ISO 8601"))
+    if (envelope or "date_start" in brief) and start is None: errors.append(err("invalid_date_window", "date_start is required and must be timezone-aware ISO 8601"))
+    if (envelope or "date_end" in brief) and end is None: errors.append(err("invalid_date_window", "date_end is required and must be timezone-aware ISO 8601"))
     if start and end and start > end: errors.append(err("invalid_date_window", "date_start must not be after date_end"))
     seen: set[str] = set(); previous: tuple[datetime, int] | None = None
     for index, row in enumerate(records):
@@ -64,7 +71,7 @@ def main(argv: list[str]) -> int:
         args = parser.parse_args(argv[1:]); payload = json.loads(Path(args.path).read_text(encoding="utf-8")); override = None
         if isinstance(payload, list):
             if args.operator is None or args.value is None: raise ValueError("records-array input requires --operator and --value")
-            override = {"view_threshold": {"operator": args.operator, "value": args.value}}
+            override = {"qualification_operator": args.operator, "qualification_value": args.value}
             if args.date_start is not None: override["date_start"] = args.date_start
             if args.date_end is not None: override["date_end"] = args.date_end
         errors = validate_payload(payload, override); print(json.dumps({"ok": not errors, "errors": errors}, ensure_ascii=False, allow_nan=False)); return 1 if errors else 0

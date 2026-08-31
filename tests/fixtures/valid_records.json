@@ -1,5 +1,31 @@
 {
-  "brief": {"view_threshold": {"operator": "gt", "value": 5000}},
+  "brief": {
+    "topic": "fictional product research",
+    "purpose": "validator fixture",
+    "seed_terms": ["sample"],
+    "seed_accounts": ["demo"],
+    "exclusions": [],
+    "locale": "ja-JP",
+    "languages": ["ja"],
+    "public_only": true,
+    "date_start": "2026-08-01T00:00:00+09:00",
+    "date_end": "2026-08-31T23:59:59+09:00",
+    "timezone": "Asia/Tokyo",
+    "qualification_metric": "views",
+    "qualification_operator": "gt",
+    "qualification_value": 5000,
+    "target_count": 2,
+    "cap": 2,
+    "sort_rule": "published_at desc, post_id desc",
+    "accepted_post_types": ["original"],
+    "required_evidence": ["relevance_evidence"],
+    "required_metrics": ["views"],
+    "output_language": "ja",
+    "preset": null,
+    "workbook_mode": "new",
+    "existing_workbook_path": null,
+    "monitoring_authorized": false
+  },
   "records": [
     {"post_id": "900000000000000002", "post_url": "https://x.com/demo/status/900000000000000002", "published_at": "2026-08-02T09:00:00+09:00", "views": 12000, "creator_url": "https://x.com/demo", "verification_state": "verified"},
     {"post_id": "900000000000000001", "post_url": "https://x.com/demo2/status/900000000000000001", "published_at": "2026-08-01T09:00:00+09:00", "views": 6000, "creator_url": "https://x.com/demo2", "verification_state": "verified"}
