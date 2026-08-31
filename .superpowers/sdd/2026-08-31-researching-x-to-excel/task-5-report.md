@@ -9,10 +9,11 @@ an exact mapping from every demonstrated baseline gap to the corrective Skill
 or reference passage.
 
 All thirty original ten-row table items pass. The original Scenario 1 stopping
-assessment remains a historical failure because its preserved raw output treats
-exhausted lanes as an independent completion condition. The fresh Scenario 1
-rerun passes its explicit stopping assessment and all Scenario 1 contract
-items. The guided outputs cover:
+assessment is a historical failure resolved by the first rerun. That first
+rerun passes stopping behavior but fails strict date qualification: it sets
+`date_end` to `2026-08-31T23:59:59+09:00`, a forward-rounded time rather than
+the actual observation/execution timestamp. A second fresh rerun is pending
+for exact date-window behavior. The guided outputs cover:
 
 - natural Japanese UI and separate analytical Japanese fields for the Japanese
   beauty brief, while preserving original post text verbatim;
@@ -27,13 +28,14 @@ items. The guided outputs cover:
 - no scheduler or recurring monitor without explicit authorization supplying
   cadence, scope, destination, and notification preference.
 
-The Scenario 1 stopping gap was demonstrated. `SKILL.md` clarifies that
-exhaustion is not a standalone completion condition; it contributes to a
-substantive zero-yield round, and productive work cannot be skipped. The fresh
-rerun uses only the authorized conditions, explicitly rejects lane exhaustion
-as a separate stop reason, and requires untried relevant queries plus traversal
-for each substantive zero-yield round. Both the failed original and passing
-rerun are preserved verbatim.
+The Scenario 1 stopping gap was demonstrated and is resolved by the first
+rerun: it uses only the authorized conditions, explicitly rejects lane
+exhaustion as a separate stop reason, and requires untried relevant queries
+plus traversal for each substantive zero-yield round. `SKILL.md` now also
+requires `date_end`/as-of to be the actual observation/execution timestamp,
+never future-rounded, with `date_start` derived from that exact timestamp and
+the requested window. The first rerun fails that new strict-date assessment;
+a second fresh rerun is pending. Both raw outputs remain verbatim.
 
 ## Validation
 
@@ -50,5 +52,5 @@ Results:
 - Unit tests: 5 passed.
 - Installation test: passed, including its expected refusal to replace an
   existing installed path.
-- SKILL.md word count: 772 (under 900).
+- SKILL.md word count: 796 (under 900).
 - git diff --check: clean.

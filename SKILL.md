@@ -11,6 +11,8 @@ Turn a research brief into evidence-backed public-X records and a linked, filter
 
 Record the topic, locale/languages, public-only scope, date window and timezone, qualification rule (including whether a metric is `gt` or `gte`), cap, required output language, and update versus new-workbook intent. Preserve an existing workbook's stated criteria; if a required criterion is absent or ambiguous, ask rather than invent one.
 
+Set `date_end`/as-of to the actual observation/execution timestamp; never round it forward into future time. Derive `date_start` from that exact timestamp and the requested window.
+
 - Read `references/data-contract.md` before normalizing or merging records.
 - Read `references/excel-deliverable.md` before creating or editing a workbook.
 - Read `references/japanese-beauty-preset.md` only for Japanese beauty-related research.

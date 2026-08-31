@@ -570,16 +570,17 @@ for scoring here.
 | Natural Japanese; verbatim originals | Pass | Japanese UI is not applicable because the brief does not request Japanese; the scope and record contract explicitly preserve each original post verbatim and select English labels by default. |
 | Monitoring authorization boundary | Pass | Scope marks monitoring “Not authorized”; no schedule is proposed. |
 
-### Scenario 1 stopping assessment — Fail (pending fresh rerun)
+### Scenario 1 stopping assessment — Historical failure (resolved by first rerun)
 
 The preserved raw output incorrectly treats “all relevant lanes are exhausted”
 as an independent stopping condition (execution-plan step 7 and stopping-rule
 item 2). Under `SKILL.md`, exhaustion instead contributes to a substantive
 zero-yield round only when no new verified qualifying record is found; it does
-not itself complete the research. The raw output remains verbatim, so this
-assessment is pending a fresh guided rerun rather than being rewritten here.
+not itself complete the research. The raw output remains verbatim; the first
+rerun corrects this stopping behavior, so this is a historical failure rather
+than a pending stopping rerun.
 
-### Scenario 1 rerun verdict — Pass
+### Scenario 1 first-rerun verdict — Fail (second fresh rerun pending)
 
 | Requirement | Pass/Fail | Rerun evidence |
 | --- | --- | --- |
@@ -587,7 +588,7 @@ assessment is pending a fresh guided rerun rather than being rewritten here.
 | Multi-lane term expansion | Pass | “Research in independent, recorded rounds” lists direct, brand/product, benefit/complaint, comparison/alternative, purchase/sale, official, creator/community, and conversation lanes. |
 | Quote/reply/source traversal | Pass | The conversation lane covers source posts, quotes, replies, and threads; the relationship rule requires logging qualifying-seed traversal. |
 | Related-account recursion | Pass | Explicit mentions, reply/quote participants, profile links, and official-network links are logged; qualifying seeds receive one bounded hop only. |
-| Strict view/date qualification | Pass | The brief fixes the six-month `Asia/Tokyo` window and `views > 10000`; the qualification gate requires both source-observed numeric views and in-window publication. |
+| Strict view/date qualification | Fail | The rerun sets `date_end` to `2026-08-31T23:59:59+09:00` for an execution date, which rounds the window forward rather than using the actual observation/execution timestamp; `date_start` therefore is not derived from that exact timestamp. |
 | Post-ID deduplication | Pass | The rerun uses `post_id` only, prefers the newest verified `observed_at`, avoids candidate overwrite, and defines newest-first sorting. |
 | No invented metrics | Pass | Missing views stay unavailable and cannot be verified; source facts, not snippets or engagement estimates, are required. |
 | Linked Excel dashboard | Pass | The Dashboard is formula/pivot/query-linked to Posts, includes linked KPI/trend/distribution outputs, and forbids copied totals. |
@@ -595,15 +596,17 @@ assessment is pending a fresh guided rerun rather than being rewritten here.
 | Natural Japanese; verbatim originals | Pass | Japanese UI is not applicable to this English Scenario 1 brief; the rerun explicitly retains original text exactly and puts analysis/normalization in separate fields. |
 | Monitoring authorization boundary | Pass | `monitoring_authorized` is false and the rerun prohibits a scheduler, refresh, or recurring monitor. |
 
-The rerun corrects the demonstrated stopping defect while retaining all Scenario
-1 contract requirements. This verdict evaluates the fresh rerun only; the
-earlier raw Scenario 1 assessment remains a historical fail.
+The first rerun resolves the demonstrated stopping defect, but fails the exact
+date-window requirement. A second fresh rerun is pending for exact
+observation/execution timestamp behavior; this verdict does not alter either
+raw output.
 
 Scenario-specific evidence: the output excludes exactly 10,000 views, keeps
 unobserved views out of formal records, preserves original-text and analysis
 fields separately, limits relationship traversal to one hop, sorts by
-published_at then post_id descending. Its stopping assessment is pending a
-fresh rerun because it also permits exhausted lanes as a standalone condition.
+published_at then post_id descending. Its stopping assessment is a historical
+failure resolved by the first rerun; the first rerun's strict-date assessment
+fails, so a second fresh rerun is pending for exact date-window behavior.
 
 ## Scenario 2 — Japanese beauty
 
@@ -651,6 +654,7 @@ order.
 
 | Baseline gap | Exact corrective passage | Guided evidence |
 | --- | --- | --- |
+| Scenario 1 first rerun: exact observation window | [SKILL.md line 14](../SKILL.md#start-with-the-brief): “Set `date_end`/as-of to the actual observation/execution timestamp; never round it forward into future time. Derive `date_start` from that exact timestamp and the requested window.” | The first rerun instead fixes `date_end` at `2026-08-31T23:59:59+09:00`; its strict-date assessment fails and a second fresh rerun is pending. |
 | Scenario 1: related-account recursion | [SKILL.md line 21](../SKILL.md#research-matrix-and-qualification): “Discover related accounts through explicit mentions, reply/quote participants, profile links, and official-network links; recurse one hop from each qualifying seed, then stop unless the brief authorizes a wider depth.” | Scenario 1 step 5 follows that rule. |
 | Scenario 1: natural Japanese/verbatim originals | [SKILL.md line 27](../SKILL.md#research-matrix-and-qualification): “Keep verbatim original text immutable: store normalizations, translations, summaries, stance, and analysis in separate fields.” [Japanese beauty preset line 3](../references/japanese-beauty-preset.md): “日本語の自然な見出しを使う（例: `調査概要`、`投稿一覧`、`集計`、`除外・確認ログ`）。原文は `投稿本文（原文）` にそのまま残し、正規化・翻訳・分析メモを別列に置く。” | Scenario 1 keeps the original text verbatim and uses English labels because its brief does not request Japanese; the cited preset supplies the natural-Japanese UI rule when that locale is requested. |
 | Scenario 1: monitoring authorization | [SKILL.md line 35](../SKILL.md#delivery-and-updates): “Do not create a recurring monitor, schedule, or automation ... Create one only after explicit authorization that states cadence, scope, destination, and notification preference.” [SKILL.md line 52](../SKILL.md#common-mistakes) reinforces that weekly wording is not authorization. | Scenario 1 declares monitoring unauthorized. |
@@ -665,8 +669,9 @@ order.
 ## Refactor decision
 
 The original Scenario 1 raw output remains a historical stopping-rule failure:
-it treats exhausted lanes as a standalone completion condition. `SKILL.md`
-clarifies that exhaustion contributes to a substantive zero-yield round and
-cannot bypass productive work. The fresh Scenario 1 rerun follows that rule
-and passes the explicit stopping and contract verdict above; both raw outputs
-remain verbatim evidence.
+it treats exhausted lanes as a standalone completion condition. The first
+rerun resolves that failure, but its `2026-08-31T23:59:59+09:00` date end is
+future-rounded rather than the actual observation/execution timestamp.
+`SKILL.md` now requires the exact timestamp and a date start derived from it.
+A second fresh rerun is pending for exact date-window behavior; both raw
+outputs remain verbatim evidence.
