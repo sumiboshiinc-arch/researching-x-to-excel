@@ -20,7 +20,7 @@ Record the topic, locale/languages, public-only scope, date window and timezone,
 
 Build independent lanes before searching: direct topic and spelling variants; brands/products; benefits, complaints, comparisons, alternatives, purchase/sale terms; official accounts and announcements; creators/communities; and quote, reply, source-post, and conversation-thread traversal. Record each lane and query on the candidate. Discover related accounts through explicit mentions, reply/quote participants, profile links, and official-network links; recurse one hop from each qualifying seed, then stop unless the brief authorizes a wider depth.
 
-Use three rounds: (1) terminology and direct posts, (2) conversations and source posts, (3) related-account one-hop review. End a lane after its round; do not repeat a query merely to appear thorough. Stop all research when the planned lanes and required traversal are complete, or when the brief's cap is satisfied by newest qualified records and remaining candidates cannot outrank them. Never relax a date, public-access, relevance, cap, or metric threshold to fill a target count.
+Work in successive rounds with distinct queries and required traversal. Stop only when a user limit is reached, the requested target count of qualified records is reached, or three consecutive substantive zero-yield rounds occur. A substantive zero-yield round exhausts untried relevant queries and traversal without finding a new verified qualifying record. Do not stop productive lanes merely because an earlier phase ends. Never relax a date, public-access, relevance, cap, or metric threshold to fill a target count.
 
 Create a candidate record first. Verify the public post view, canonical post ID, published timestamp/timezone, original text, and required metric at the source. Include a metric only when observed; blank is unavailable, never zero or an estimate. Exclude a candidate with a missing required view count; log it rather than inferring from likes or engagement. Mark restricted, deleted, or unavailable posts with their status and retain the available URL/ID without treating them as verified.
 
@@ -32,7 +32,7 @@ Create or update only a safe working copy when a workbook is malformed, protecte
 
 Before delivery, inspect formula errors, table filters, link targets, numeric cells, sort order, dashboard links, charts, and rendered workbook appearance. State uncertainty, source limitations, exclusions, and verification timestamps plainly. If required search access, an X export, or credentials are unavailable, provide the exact missing access, candidate/log template, and handoff steps; do not fabricate a dataset.
 
-Do not create a recurring monitor, schedule, or automation from a research/update request. Create one only after explicit authorization that states cadence, scope, destination, and notification preference.
+Keep credentials, cookies, workbooks, browser profiles, and research data outside this repository; never commit or copy them into it. Do not create a recurring monitor, schedule, or automation from a research/update request. Create one only after explicit authorization that states cadence, scope, destination, and notification preference.
 
 ## Quick reference
 
