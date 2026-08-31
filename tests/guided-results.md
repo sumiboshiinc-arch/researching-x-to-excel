@@ -830,3 +830,147 @@ historical strict-date failure. The second rerun uses the exact
 `2026-08-31T14:34:33+09:00` observation timestamp and matching derived start,
 passing both the observation-window and stopping rules with all Scenario 1
 contract items. All three raw outputs remain verbatim evidence.
+
+
+## Scenario 4 — authorized monitoring raw output (verbatim)
+
+# ガイドシナリオ 4：認可済み定期モニタリング契約
+
+これは実行前の正規化済み契約であり、このテストでは自動化の作成、X の検索、またはブックの更新は行わない。
+
+## 正規化済みモニタリング契約
+
+| 項目 | 契約値 |
+| --- | --- |
+| 目的 | 日本で流通・言及される眉毛ブリーチ／眉毛脱色（眉毛を明るくする）商品に関する、条件を満たす公開 X 投稿を継続把握する。 |
+| 実行頻度 | 毎週月曜日 09:00、`Asia/Tokyo`。 |
+| 観測時刻 | 各実行の実時刻をタイムゾーン付き ISO 8601 で `observed_at` および今回の `date_end` として記録する。未来日時へ丸めない。 |
+| 対象期間 | 初回は実行時刻から正確に 7 日前まで（両端を含む）。2 回目以降は保存済みの `prior_observation_at` から今回の実行時刻まで（両端を含む）。完了時に今回の実行時刻を次回用 `prior_observation_at` として保存する。 |
+| 公開範囲 | 公開閲覧可能な投稿のみ。限定公開、削除、制限、ログイン必須で事実確認できない投稿は正式採用しない。 |
+| 資格条件 | `views gt 5000`。すなわち表示回数が数値として確認でき、**5,001 以上**であること。5,000 は不採用。表示回数不明は 0 と推定せず、候補／除外ログへ記録する。 |
+| 受理する投稿種別 | 原投稿、引用投稿、返信。ただし本文・画像文脈・引用元・会話関係のいずれかから、眉毛を明るくする商品／方法との投稿レベルの明示的関連性を記録できるもの。 |
+| 除外 | 眉毛と無関係な脱色・ヘアカラー、表記だけで対象と判断した投稿、非公開投稿、必須表示回数が未確認の投稿、重複投稿。広告・提供・PR は除外理由ではなく、原文の根拠と確認状態を `disclosure` に保存する。 |
+| 言語・表示 | 分析、ラベル、要約、UI は自然な日本語。`original_text`／`投稿本文（原文）` は一切改変せず、正規化、訳、要約、スタンスは別フィールドに置く。 |
+| 表記ゆれ | 「眉毛ブリーチ」「眉ブリーチ」「眉毛脱色」「眉脱色」「眉毛 明るくする」等の日本語表記、スペース・全半角・ひらがな／カナ／英字差、判明したブランド名・商品名を発見用シードにする。公式ページ・公式 X・商品パッケージ・証拠投稿で確認できた韓国語・ローマ字・中国語表記だけを根拠 URL とともに辞書化し、機械的音写は未確認候補として分離する。 |
+| 保存先 | 既存ブック `/data/eyebrow-research.xlsx` を増分更新する。別名ブックへの置換・再作成はしない。ブックが保護、破損、数式破損の場合のみ安全な作業コピーを用い、原本を保持して障害を報告する。 |
+| 更新対象 | `Dashboard / ダッシュボード`、`Summary / サマリー`、`Posts / 投稿一覧`、`Source & Quote Analysis / 引用元分析`、`Research Angles & Candidate Log / 調査角度・候補ログ`、`Additional Candidates / 追加調査候補`、`Methodology & Verification / 調査方法・検証結果`。 |
+| 同一性・競合 | `dedupe_key=post_id`。ブック全体の既存 ID 列と照合する。同一 ID で観測値が競合したら、`observed_at` が新しい **verified** 観測を優先する。verified の値を candidate 値で上書きせず、矛盾を隠して混在させない。 |
+| 並び順 | 正式採用レコードは `published_at` 降順、同時刻は数値 `post_id` 降順。 |
+| 通知先・方針 | 現在の Codex タスクへ結果を返す。新規の条件達成投稿が 1 件以上ある場合、または失敗時のみ通知する。条件達成の新規が 0 件で成功した場合も実行結果は記録・報告するが、通常通知は送らない。 |
+
+監視は明示認可済みであり、頻度、対象、保存先、通知方針を固定する。以後の実行で対象範囲、閾値、期間、通知方針を暗黙に広げたり緩めたりしない。
+
+## 実行ごとの調査計画
+
+1. 実行開始時に実時刻を `date_end` として固定し、初回は 7 日間、以後は `prior_observation_at` からの期間を算出する。ブックの対象テーブル、数式、計算列、フィルター／スライサー、名前定義、ハイパーリンク、グラフ、スタイル、検証、現在の並び順、既存 `post_id` を先に点検する。
+2. 以下の独立レーンを、同じクエリの反復ではなく順に探索する。各候補にレーン、クエリ、関連根拠、判定理由を残す。
+   - 対象語・商品語・表記ゆれ（日本語、確認済みの他言語名を含む）
+   - ブランド／商品、公式アカウント、公式発表・販売ページ由来のネットワーク
+   - 効果・使用感、肌悩み・失敗・不満、比較、代替、購入・販売・セール
+   - クリエイター／コミュニティ、`Qoo10`・メガ割・楽天・Amazon・PLAZA・LOFT・`@cosme`・公式通販などの文脈
+   - PR／AD／提供／gifted／モニターの開示文脈
+   - 引用、返信、元投稿、会話スレッドの追跡
+3. 公開投稿の候補ごとに、正規の投稿 URL と `post_id`、公開日時、原文、作成者名・ハンドル・厳密なプロフィール URL、投稿種別、必要な表示回数、各観測値、関連性根拠、元／引用関係を一次表示で確認する。関連アカウントは明示メンション、返信・引用参加者、プロフィールリンク、公式ネットワークから発見し、条件達成シードごとに **1 ホップ**だけ確認する。
+4. `views > 5000`、公開性、対象への明示的関連性、必須ソース事実のすべてを満たす候補だけを `verified` とする。必須表示回数がないものは `missing_required_view`、制限・削除は `restricted`／`deleted` と明示して候補ログに残す。数値は表示文字列ではなく数値型、日時は `Asia/Tokyo` を含む ISO 8601 とする。
+5. 新規 verified レコードを増分マージし、`post_id` で全体重複を除く。引用・返信・親投稿の関係と双方の URL は `引用元分析` に反映する。候補、正式採用、除外を混ぜない。
+6. 表示件数にかかわらず、結果、対象期間、レーン別の探索量、停止根拠、検証時刻、制約、QA をブックと今回のタスク結果に残す。0 件の場合も「検索未実施」ではなく「新規 qualifying post 0 件」と明記する。
+
+## レコードおよびブック更新契約
+
+### 正式レコード
+
+`投稿一覧` の正式レコードは 1 投稿 1 行とし、少なくとも次を保持する。
+
+`post_id`, `post_url`, `published_at`, `timezone`, `views`, `likes`, `reposts`, `replies`, `quotes`, `bookmarks`, `original_text`, `creator_name`, `handle`, `creator_url`, `post_type`, `relevance_tier`, `stance`, `disclosure`, `summary`, `relevance_evidence`, `source_post_id`, `source_post_url`, `discovery_lane`, `verification_state`, `observed_at`。
+
+- `views` は有限な数値で、採用行では 5,001 以上。未観測の任意メトリクスは空欄／null とし、0 や推定値で埋めない。
+- `original_text` は投稿原文を逐語的に保存する。日本語の要約、分析メモ、商品名の正規化、必要な翻訳は専用列に分ける。
+- `source_post_id` と `source_post_url` は、該当する引用・返信・親投稿のみ保存する。発見レーンと関連性根拠は必須である。
+- 新しい verified 観測が同一 ID の既存 verified 観測と食い違う場合は新しい `observed_at` を優先し、古い値は新しい観測でそのフィールドが欠ける場合だけ保持する。
+
+### シート別の更新範囲
+
+| シート | 更新契約 |
+| --- | --- |
+| Dashboard / ダッシュボード | `投稿一覧` テーブルにリンクした KPI、時系列、カテゴリ／関連度分布、上位投稿表示、既存のフィルター／スライサーを更新する。値を手入力で複製しない。 |
+| Summary / サマリー | 今回の調査概要、期間・タイムゾーン、採用／除外件数、主な発見、制約、0 件結果を更新する。 |
+| Posts / 投稿一覧 | 既存 Excel テーブルに新規 verified 行を挿入し、計算列を維持する。ヘッダー固定、フィルター、リンク、データ型、降順を保持する。 |
+| Source & Quote Analysis / 引用元分析 | 新規・更新された引用、返信、親子関係、双方の URL と分析を追加し、既存関係を破壊しない。 |
+| Research Angles & Candidate Log / 調査角度・候補ログ | レーン、検索語、アカウント群、実質的ラウンド、候補数、採用数、判定、却下理由、停止証跡を追記する。 |
+| Additional Candidates / 追加調査候補 | 閾値未満、表示回数未確認、アクセス不可、文脈のみ、重複などを理由・状態・利用可能な ID/URL とともに記録する。 |
+| Methodology & Verification / 調査方法・検証結果 | 固定条件、観測時刻、一次ソース確認、限界、`prior_observation_at` の更新、停止根拠、検証結果、QA 結果を追記する。 |
+
+全詳細／ログ範囲は Excel テーブルのまま保持する。既存の数式、計算列、テーブル、フィルター、スライサー、スタイル、条件付き書式、入力規則、名前付き範囲、ハイパーリンク、グラフ、ダッシュボード連携を保存し、確立済みのテーブル経由で行を追加する。互換性のあるシート順と構造を変えない。
+
+## 停止規則
+
+各「実質的ラウンド」は、未探索のレーン、アカウント群、または関係エッジを少なくとも 1 つ含む。クエリの繰り返しだけでは新ラウンドにならない。
+
+- ユーザーが将来、件数上限または目標件数を明示した場合は、それに到達した時点で停止する。
+- それ以外は、連続 3 回の実質的ゼロ採用ラウンドで停止する。
+- 新たな verified qualifying post の `post_id` を 1 件でも確認したら、ゼロ採用連続回数を 0 に戻す。
+- 公式・商品・使用感などの生産的レーンを、前段が終わったという理由だけで早期終了しない。条件を緩めて件数を満たすことも禁止する。
+- 関連アカウントの追跡は各 qualifying seed から 1 ホップで終了し、より深い再帰は別途認可がない限り実施しない。
+
+## QA と実行結果チェックリスト
+
+### 更新前・更新時
+
+- [ ] 今回の `date_end` は実行時刻であり、初回／継続時の `date_start` は契約どおりである。
+- [ ] 公開投稿だけを対象にし、全正式採用行に一次表示で確認した `post_id`、正規 URL、原文、日時、表示回数、観測時刻がある。
+- [ ] すべての正式採用行で `views > 5000` を満たす。5,000 以下または表示回数不明を採用していない。
+- [ ] `post_id` でワークブック全体と重複除去し、競合には最新 verified 観測を適用した。
+- [ ] 原文を変更せず、日本語分析・正規化・要約を別列に保存した。
+- [ ] 採用、候補、除外を別シート／別テーブルの役割に従って記録した。
+- [ ] `投稿一覧` は `published_at` 降順、同時刻は数値 `post_id` 降順である。
+- [ ] 指定 7 シートのみを合意済みの役割で更新し、既存の数式、フィルター／スライサー、グラフ、スタイル、リンク、検証、テーブルを保持した。
+
+### 更新後のブック QA
+
+- [ ] 数式エラー（例: `#REF!`、`#VALUE!`、`#DIV/0!`）がない。
+- [ ] テーブル範囲、計算列、フィルター、スライサー、名前付き範囲が新規行を正しく含む。
+- [ ] 投稿・作成者・引用元のハイパーリンクが正しい URL を指す。
+- [ ] 数値セルと日時セルが数値／日時型のままである。
+- [ ] ダッシュボード KPI、上位投稿、時系列、分布グラフが `投稿一覧` とリンクし、合計・件数・順序が一致する。
+- [ ] すべてのシートを開く／レンダリングして、切れ、重なり、判読性、グラフ範囲を確認した。
+
+### タスクへの実行報告
+
+成功時は、今回の観測期間、実行時刻、探索したレーンと停止根拠、新規 qualifying 件数、既存投稿の更新件数、除外／未確認件数、保存先、QA 結果、制約を報告する。新規 qualifying が 0 件でも同じ要点を「新規 0 件」として必ず報告する。
+
+通知は新規 qualifying 投稿が 1 件以上、または失敗時に限る。失敗時は、失敗した段階、ブックを変更したかどうか、保全状況、必要なアクセスまたは復旧手順を明記する。新規 0 件の成功は記録対象だが、通常の能動通知対象外とする。
+
+## Scenario 4 — authorized monitoring verdict
+
+| Requirement | Pass/Fail | Evidence |
+| --- | --- | --- |
+| Explicit authorization fields | Pass | The contract explicitly fixes purpose/scope, Monday 09:00 Asia/Tokyo cadence, workbook destination, and notification policy, and states that monitoring is authorized. |
+| Prior observation / initial lookback | Pass | Initial execution uses exactly seven days; later executions start at saved `prior_observation_at`, and completion persists the next value. |
+| Unchanged strict threshold | Pass | `views gt 5000` is fixed; 5,000 and missing views are excluded, and future runs may not loosen the rule. |
+| Seven workbook sections | Pass | The update-target table names Dashboard, Summary, Posts, Source & Quote Analysis, Research Angles & Candidate Log, Additional Candidates, and Methodology & Verification. |
+| Source/quote and research-angle depth | Pass | The plan covers source, quote, reply, parent, thread, official-network, creator/community, marketplace, disclosure, comparison, complaint, and alternative lanes with one-hop evidence. |
+| `post_id` dedupe | Pass | It sets `dedupe_key=post_id`, checks the workbook-wide ID column, and gives newest-verified conflict precedence. |
+| Preservation and linked dashboard | Pass | It preserves tables, formulas, calculated columns, styles, links, charts, filters/slicers, and named ranges; dashboard KPIs, trends, distributions, and top posts remain linked to Posts. |
+| Zero-new reporting | Pass | Every run reports results; a successful zero-yield run is explicitly recorded as “new qualifying post 0,” even when normal notification is suppressed. |
+| Destination / notification | Pass | Destination is `/data/eyebrow-research.xlsx`; results return to the current Codex task, with proactive notification only for new qualifying posts or failure. |
+| Natural Japanese / immutable originals | Pass | UI and analysis use natural Japanese, while `original_text` remains verbatim and normalization/translation/summary stay separate. |
+| No automation side effect in test | Pass | The opening sentence expressly states that this is a pre-execution contract and creates no automation, performs no X search, and updates no workbook. |
+
+## Updated workbook-contract reference rubric
+
+| Approved requirement | Pass/Fail | Reference evidence |
+| --- | --- | --- |
+| Dashboard section | Pass | Item 1 requires linked KPIs, trend, distribution, top-post view, interactive filters/slicers, and Posts navigation. |
+| Summary section | Pass | Item 2 requires brief, window/timezone, coverage, counts, findings, and limitations. |
+| Posts section | Pass | Item 3 requires one qualifying post per row and the record/normalization/quality fields. |
+| Source & Quote Analysis | Pass | Item 4 requires quote, reply, parent/source relationships and both URLs. |
+| Research Angles & Candidate Log | Pass | Item 5 requires lanes, terms, accounts, substantive rounds, yield, decisions, and reasons. |
+| Additional Candidates | Pass | Item 6 preserves near-threshold, unverified, inaccessible, context-only, and excluded candidates with reasons. |
+| Methodology & Verification | Pass | Item 7 requires definitions, timestamps, sources, limitations, stopping evidence, validation, and QA. |
+| One-to-one/localized structure | Pass | The reference prohibits collapsing/substitution while allowing compatible Japanese equivalents. |
+| Linked dashboard and controls | Pass | The reference requires Posts-linked formulas/pivots/Power Query, trend/distribution charts, linked top posts, and materially functional filters/slicers. |
+| Incremental preservation and QA | Pass | It preserves compatible workbook structures and requires formula, range, link, control, chart, total, and rendered visual checks. |
+
+## Scenario 4 refactor decision
+
+No real gap appears. The guided output covers the revised monitoring and workbook contracts without claiming an actual automation side effect. No Skill change or scenario rerun is needed.
