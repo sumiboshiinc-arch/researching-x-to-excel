@@ -438,11 +438,20 @@ for scoring here.
 | Natural Japanese; verbatim originals | Pass | Japanese UI is not applicable because the brief does not request Japanese; the scope and record contract explicitly preserve each original post verbatim and select English labels by default. |
 | Monitoring authorization boundary | Pass | Scope marks monitoring “Not authorized”; no schedule is proposed. |
 
+### Scenario 1 stopping assessment — Fail (pending fresh rerun)
+
+The preserved raw output incorrectly treats “all relevant lanes are exhausted”
+as an independent stopping condition (execution-plan step 7 and stopping-rule
+item 2). Under `SKILL.md`, exhaustion instead contributes to a substantive
+zero-yield round only when no new verified qualifying record is found; it does
+not itself complete the research. The raw output remains verbatim, so this
+assessment is pending a fresh guided rerun rather than being rewritten here.
+
 Scenario-specific evidence: the output excludes exactly 10,000 views, keeps
 unobserved views out of formal records, preserves original-text and analysis
 fields separately, limits relationship traversal to one hop, sorts by
-published_at then post_id descending, and stops after a cap, exhausted lanes,
-or three substantive zero-yield rounds.
+published_at then post_id descending. Its stopping assessment is pending a
+fresh rerun because it also permits exhausted lanes as a standalone condition.
 
 ## Scenario 2 — Japanese beauty
 
@@ -491,8 +500,10 @@ order.
 | Baseline gap | Exact corrective passage | Guided evidence |
 | --- | --- | --- |
 | Scenario 1: related-account recursion | [SKILL.md line 21](../SKILL.md#research-matrix-and-qualification): “Discover related accounts through explicit mentions, reply/quote participants, profile links, and official-network links; recurse one hop from each qualifying seed, then stop unless the brief authorizes a wider depth.” | Scenario 1 step 5 follows that rule. |
+| Scenario 1: natural Japanese/verbatim originals | [SKILL.md line 27](../SKILL.md#research-matrix-and-qualification): “Keep verbatim original text immutable: store normalizations, translations, summaries, stance, and analysis in separate fields.” [Japanese beauty preset line 3](../references/japanese-beauty-preset.md): “日本語の自然な見出しを使う（例: `調査概要`、`投稿一覧`、`集計`、`除外・確認ログ`）。原文は `投稿本文（原文）` にそのまま残し、正規化・翻訳・分析メモを別列に置く。” | Scenario 1 keeps the original text verbatim and uses English labels because its brief does not request Japanese; the cited preset supplies the natural-Japanese UI rule when that locale is requested. |
 | Scenario 1: monitoring authorization | [SKILL.md line 35](../SKILL.md#delivery-and-updates): “Do not create a recurring monitor, schedule, or automation ... Create one only after explicit authorization that states cadence, scope, destination, and notification preference.” [SKILL.md line 52](../SKILL.md#common-mistakes) reinforces that weekly wording is not authorization. | Scenario 1 declares monitoring unauthorized. |
 | Scenario 2: linked dashboard | [Excel deliverable line 10](../references/excel-deliverable.md#excel-deliverable) requires a Dashboard; [line 13](../references/excel-deliverable.md#excel-deliverable) requires Posts-linked KPIs and linked trend/distribution charts. [SKILL.md line 50](../SKILL.md#common-mistakes) rejects an unlinked summary. | Scenario 2 step 7 and its 集計 contract use Posts-linked formulas/pivots and charts. |
+| Scenario 2: related-account recursion | [SKILL.md line 21](../SKILL.md#research-matrix-and-qualification): “Discover related accounts through explicit mentions, reply/quote participants, profile links, and official-network links; recurse one hop from each qualifying seed, then stop unless the brief authorizes a wider depth.” | Scenario 2 step 4 records relationship type, evidence, and depth; it explores only one hop from each qualifying seed. |
 | Scenario 2: monitoring authorization | [SKILL.md line 35](../SKILL.md#delivery-and-updates) and [data contract line 11](../references/data-contract.md#data-contract) require explicit authorization and otherwise set monitoring_authorized false. | Scenario 2 sets it false and prohibits automation. |
 | Scenario 3: quote/reply/source traversal | [SKILL.md line 21](../SKILL.md#research-matrix-and-qualification) requires quote, reply, source-post, and thread traversal. | Scenario 3 step 4 lists all four. |
 | Scenario 3: related-account recursion | [SKILL.md line 21](../SKILL.md#research-matrix-and-qualification) sets evidence-based, bounded one-hop related-account traversal; [line 49](../SKILL.md#common-mistakes) requires a relationship edge. | Scenario 3 step 4 uses explicit evidence and one hop. |
@@ -501,6 +512,8 @@ order.
 
 ## Refactor decision
 
-No genuine guided gap was demonstrated. All ten verdicts pass in each scenario,
-so SKILL.md and the reference files are intentionally unchanged. A fresh rerun
-would be required before claiming any different behavior.
+The Scenario 1 raw output demonstrates a stopping-rule gap: it treats exhausted
+lanes as a standalone completion condition. `SKILL.md` now clarifies that
+exhaustion contributes to a substantive zero-yield round and cannot bypass
+productive work. The verbatim fixture is intentionally unchanged; a fresh
+guided rerun is required before its stopping assessment can pass.
