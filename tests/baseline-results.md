@@ -215,7 +215,7 @@ Excel は日本語の見出し、固定ヘッダー、オートフィルター�
 |---|---|---|
 | Multi-lane term expansion | Pass | The collection design gives task/action, product/form, purchase/promotion, and spelling-variation query families. |
 | Quote/reply/source traversal | Pass | Collection step 3 explicitly traverses replies, quotes, conversation threads, linked official posts, and profile-related posts. |
-| Related-account recursion | Pass | Collection step 3 follows related posts from the poster profile; the relationship sheet records related accounts. |
+| Related-account recursion | Fail | Collection step 3 follows related posts from the poster profile and the relationship sheet records related accounts, but it defines neither related-account discovery nor recursive traversal. |
 | Strict view/date qualification | Pass | Collection steps 1 and 5 require the one-year window and views of 5,001 or greater; completion checks repeat it. |
 | Post-ID deduplication | Pass | Collection step 4 uses post ID as the primary key and merges repeat findings. |
 | No invented metrics | Pass | It excludes posts with unverifiable text/views/date and says unavailable relationship information must be recorded rather than guessed. |
