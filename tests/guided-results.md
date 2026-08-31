@@ -544,13 +544,147 @@ An exhausted lane, an exhausted set of lanes, lack of a convenient next query, o
 - [ ] Any unavailable access/source limitation, restricted/deleted record, uncertainty, or repair need is stated plainly; no data is fabricated and no monitoring/scheduler is created.
 </pre>
 
-The four raw guided outputs are preserved verbatim in these complete
+### Scenario 1 rerun 2
+
+<pre>
+# Guided Scenario 1 — Fresh Rerun 2
+
+## Locked research brief
+
+| Field | Value |
+| --- | --- |
+| Topic | Compact countertop dishwashers |
+| Scope | Public X posts only; do not use private, logged-in-only, restricted, or inferred content |
+| Locale / languages | Global; search English plus relevant product/model, brand, and locally used-language variants discovered from verified public posts |
+| Observation timestamp (`date_end` / as-of) | `2026-08-31T14:34:33+09:00` (`Asia/Tokyo`), captured at execution time |
+| Window | The six calendar months ending at the exact observation timestamp: `2026-02-28T14:34:33+09:00` through `2026-08-31T14:34:33+09:00` |
+| Inclusion timestamp test | `published_at >= 2026-02-28T14:34:33+09:00` and `published_at <= 2026-08-31T14:34:33+09:00`; convert each source timestamp to `Asia/Tokyo` before comparison |
+| Qualification | Observed public `views` must be strictly greater than `10,000` (`gt 10000`); `10,000` exactly does **not** qualify |
+| Target / cap | Collect up to 80 verified, deduplicated posts. Fewer is valid only under the stopping rule below. |
+| Deliverable | New filterable Excel workbook with a formula-/pivot-/Power Query-linked dashboard |
+| Monitoring | Not authorized. Do not create a scheduler, automation, or recurring research task. |
+
+`date_end` is deliberately an observed timestamp, not an end-of-day or forward-rounded value. Because February 2026 has 28 days, six-calendar-month subtraction from August 31 resolves `date_start` to February 28 at the same time and offset.
+
+## Execution plan
+
+1. Create a `ResearchBrief` with the locked fields above and a new-workbook mode. Maintain three separate queues/tables from the outset: candidates, verified records, and exclusions.
+2. Run independent discovery lanes in rounds; log every query, its lane, observed time, and result decision. Use direct topic/spelling variants first, then do not retire a productive lane merely because another phase has finished.
+
+   | Lane | Required coverage |
+   | --- | --- |
+   | Direct topic | `countertop dishwasher`, `compact dishwasher`, `portable dishwasher`, `mini dishwasher`, `tabletop dishwasher`, `small apartment dishwasher`, and hashtag/spelling variants |
+   | Brand / product | Publicly surfaced compact models and their manufacturers, model numbers, and retailer/product-name variants; use only evidence-supported additions |
+   | Benefits | Space saving, renter/apartment use, installation/no-plumbing, water/energy use, baby-bottle or small-load use, drying, cleaning performance |
+   | Complaints | Noise, leaks, capacity, reliability, detergent residue, installation, shipping/returns, customer support |
+   | Comparisons / alternatives | Hand-washing, full-size or slimline units, other countertop models, RV/camper use, and purchase alternatives |
+   | Purchase / sale | Buying intent, deals, reviews, recommendations, restocks, affiliate/disclosure signals |
+   | Official network | Manufacturer and product-account announcements, replies, quotes, linked official profiles, and launches |
+   | Creators / communities | Reviewers, appliance/home/renter/RV communities, and accounts explicitly connected by public mention, profile link, reply, or quote |
+   | Thread traversal | For qualified seeds, inspect source posts, quote posts, replies, and conversation participants where publicly visible |
+
+3. For every candidate, capture the canonical status URL and ID, the original post text, published timestamp, public view count, engagement metrics when shown, and the source location. Verify those facts on the public source; a search snippet alone is never verification.
+4. Apply the inclusion tests in this order: public availability; canonical ID; timestamp inside the locked window; direct topical relevance; observed view count; then strict threshold (`views > 10000`). A missing view count is not zero: mark it `missing_required_view` and exclude it from formal results.
+5. For each verified seed, record relationship edges and recurse exactly one hop through explicitly evidenced mentions, replies, quotes, profile links, and official-network links. Search the resulting related account/post only within the same window and qualification rules; do not expand to a second hop.
+6. Deduplicate exclusively by `post_id`. Where observations conflict, retain the newest verified observation by `observed_at`; retain an older field only if the newer verified observation lacks it, and expose any conflict in the quality note/log. Never let candidate values overwrite verified values.
+7. Continue successive, distinct rounds and traversal. Sort verified records by `published_at` descending and then `post_id` descending. Once complete, construct the workbook, validate it, and clearly disclose access limitations and excluded/unverifiable candidates.
+
+## Normalized record contract
+
+Create the following `ResearchBrief` before collection:
+
+```text
+topic: compact countertop dishwashers
+locale: global
+languages: English plus evidence-supported relevant variants
+public_only: true
+date_start: 2026-02-28T14:34:33+09:00
+date_end: 2026-08-31T14:34:33+09:00
+timezone: Asia/Tokyo
+qualification_metric: views
+qualification_operator: gt
+qualification_value: 10000
+cap: 80
+output_language: English
+workbook_mode: new
+monitoring_authorized: false
+```
+
+Every candidate and verified item uses these required `PostRecord` fields. Numeric engagement fields are numbers when observed and blank/null when unavailable; they are never estimates.
+
+```text
+post_id, post_url, published_at, timezone, views, likes, reposts,
+replies, quotes, bookmarks, original_text, creator_name, handle,
+creator_url, post_type, relevance_tier, stance, disclosure, summary,
+relevance_evidence, source_post_id, source_post_url, discovery_lane,
+verification_state, observed_at
+```
+
+Operational meanings:
+
+- `post_id` is the immutable identity key and is stored as text so Excel cannot round it.
+- `post_url` and `creator_url` are canonical, active clickable URLs when available.
+- `published_at` is an offset-aware source timestamp retained as a typed date/time where supported; `timezone` records the source/normalized timezone used for the window test.
+- `original_text` is verbatim and immutable. Translation, normalization, brand/model extraction, tags, summary, stance, and relevance assessment must be separate fields.
+- `post_type` records original, reply, quote, repost, or other source-supported form. `source_post_id` / `source_post_url` preserve the source relationship where applicable.
+- `relevance_tier` and `relevance_evidence` state why the post is substantively about a compact countertop dishwasher rather than merely a generic appliance mention.
+- `disclosure` records observed sponsorship, affiliate, gifted-product, or other material disclosure; use `none_observed` only when no disclosure is visible, not as proof of independence.
+- `verification_state` is one of at least `candidate`, `verified`, `missing_required_view`, `restricted`, or `deleted`. Only `verified` rows can appear in the accepted Posts table.
+- `observed_at` is the exact verification time. For conflicts, preserve the newest verified observation and document the discrepancy instead of silently blending values.
+
+The Posts table additionally has `rank`, `normalized_brand`, `normalized_product`, `topic_tags`, and `data_quality_note`. Formal accepted records are sorted newest first by `published_at`, then `post_id` descending.
+
+## Workbook contract
+
+Build a new `.xlsx` with seven sheets, each using an Excel Table where it holds rows. Freeze headers and enable table filters on Posts and every log table. Store post IDs as text, timestamps as typed dates/times, metrics as numeric values, and URLs as live hyperlinks.
+
+| Sheet | Required content and linkage |
+| --- | --- |
+| Research Summary | Locked brief, exact as-of timestamp/window/timezone, strict threshold, verified count, candidate/exclusion counts, source/access limits, and methodology. Counts link to the tables rather than being manually typed. |
+| Posts | Verified `PostRecord` fields plus rank, normalized brand/product, tags, and quality note; table filters, frozen header, canonical URLs, and mandated sort order. |
+| Search & Candidate Log | Candidate ID/URL, query, lane, checked time, decision, and exclusion reason; includes candidates not promoted to verified. |
+| Relationship Map | Root post ID, relation type, related post/account ID and URL, relationship evidence, traversal depth (0 or 1), and status. |
+| Normalization Dictionary | Original term, normalized term, type, evidence post ID, decision, and note. |
+| Dashboard | Formula-/pivot-/Power Query-linked KPI cards (verified count, total/median views, and at least one auditable segment measure), a weekly or monthly trend chart, a distribution chart by topic/brand/post type/stance, and a navigation hyperlink to Posts. No manually copied dashboard totals. |
+| Exclusions & Verification Log | ID/URL, status/reason, required-field outcome, source, observer, timestamp, plus conflicts/reverification notes. |
+
+Dashboard checks must reconcile to Posts: filtered verified count equals the Dashboard count; its aggregate views and segment totals recalculate from the Posts table; both charts reference linked data; and the Posts navigation link opens the table. Add a visibly stated `Views > 10,000` rule and exact as-of window to Research Summary and Dashboard so downstream users do not mistake the dataset for a live monitor.
+
+## Stopping rule
+
+Stop collection only at the first applicable condition:
+
+1. 80 verified, unique, qualifying posts have been collected; or
+2. Three consecutive **substantive zero-yield rounds** have occurred.
+
+A round is substantive only when it exhausts untried relevant queries and required one-hop traversal for its lanes without producing a new verified qualifying record. A round that finds at least one new verified record resets the consecutive zero-yield count to zero. Repeated, duplicate, non-substantive, or untried-lane checks do not count toward the three rounds. Exhausted lanes are inputs to a substantive round, not an independent completion condition: continue every productive, relevant lane and do not stop just because an earlier phase or lane is exhausted. Never relax public-only access, date window, topical relevance, cap, or the strict view threshold to reach 80.
+
+## Validation checklist
+
+- [ ] Reconfirm the actual `date_end` shown in the workbook is `2026-08-31T14:34:33+09:00`, not a future/end-of-day rounding; derive and display the matching `date_start`.
+- [ ] Confirm every accepted row is public, canonically identified, within the timestamp window, relevant, and has an observed numeric `views` value greater than 10,000.
+- [ ] Confirm exactly-10,000-view and missing-view posts are excluded from accepted Posts and logged with the correct reason/state.
+- [ ] Confirm accepted count is at most 80; deduplicate against the whole Posts `post_id` column and resolve observation conflicts by newest verified `observed_at`.
+- [ ] Confirm original text was retained verbatim and that analytical/normalized fields are separate.
+- [ ] Confirm every required PostRecord field is present; identifiers are text, metrics are numeric, timestamps are typed, and public URLs work.
+- [ ] Confirm candidate, verified, restricted/deleted, and missing-view records are distinct and auditable in the logs.
+- [ ] Confirm all relationship entries have evidence and depth no greater than one hop.
+- [ ] Inspect Excel Table filters, frozen headers, table ranges, formulas/pivots/query links, hyperlinks, number/date formats, sort order, and chart source ranges.
+- [ ] Scan for formula errors including `#REF!`, `#VALUE!`, `#DIV/0!`, `#NAME?`, and `#N/A`; reconcile Dashboard KPIs and charts to Posts.
+- [ ] Render/open every sheet for visual QA: no clipped headers, unreadable charts, blank default sheets, broken navigation, or dashboard elements outside the usable area.
+- [ ] State any unavailable public-source facts or access limitations plainly; do not fabricate rows, metrics, views, or completion claims.
+- [ ] Confirm no monitoring, scheduling, automation, credentials, cookies, browser profiles, or research data were written to this repository.
+
+</pre>
+
+The five raw guided outputs are preserved verbatim in these complete
 fresh-context scenario fixtures:
 
 1. [Scenario 1 raw output](../.superpowers/sdd/2026-08-31-researching-x-to-excel/guided-scenario-1.md)
 2. [Scenario 2 raw output](../.superpowers/sdd/2026-08-31-researching-x-to-excel/guided-scenario-2.md)
 3. [Scenario 3 raw output](../.superpowers/sdd/2026-08-31-researching-x-to-excel/guided-scenario-3.md)
 4. [Scenario 1 rerun raw output](../.superpowers/sdd/2026-08-31-researching-x-to-excel/guided-scenario-1-rerun.md)
+5. [Scenario 1 rerun 2 raw output](../.superpowers/sdd/2026-08-31-researching-x-to-excel/guided-scenario-1-rerun2.md)
 
 No portion of these outputs was normalized, translated, or otherwise altered
 for scoring here.
@@ -578,9 +712,9 @@ item 2). Under `SKILL.md`, exhaustion instead contributes to a substantive
 zero-yield round only when no new verified qualifying record is found; it does
 not itself complete the research. The raw output remains verbatim; the first
 rerun corrects this stopping behavior, so this is a historical failure rather
-than a pending stopping rerun.
+than an unresolved stopping assessment.
 
-### Scenario 1 first-rerun verdict — Fail (second fresh rerun pending)
+### Scenario 1 first-rerun verdict — Historical failure (resolved by second rerun)
 
 | Requirement | Pass/Fail | Rerun evidence |
 | --- | --- | --- |
@@ -597,16 +731,37 @@ than a pending stopping rerun.
 | Monitoring authorization boundary | Pass | `monitoring_authorized` is false and the rerun prohibits a scheduler, refresh, or recurring monitor. |
 
 The first rerun resolves the demonstrated stopping defect, but fails the exact
-date-window requirement. A second fresh rerun is pending for exact
-observation/execution timestamp behavior; this verdict does not alter either
+date-window requirement. The second rerun resolves that date-window failure;
+this first-rerun verdict remains historical evidence and does not alter either
 raw output.
+
+### Scenario 1 second-rerun verdict — Pass
+
+| Requirement | Pass/Fail | Second-rerun evidence |
+| --- | --- | --- |
+| Exact date window | Pass | `date_end`/as-of is the execution-time `2026-08-31T14:34:33+09:00`; `date_start` is the matching six-calendar-month timestamp `2026-02-28T14:34:33+09:00`, and the inclusion test compares against both exact endpoints. |
+| Stopping behavior | Pass | Stop conditions are only the 80-record cap or three consecutive substantive zero-yield rounds; exhausted lanes are inputs to a substantive round, never independent completion conditions. |
+| Multi-lane term expansion | Pass | The independent-round matrix covers direct, brand/product, benefits, complaints, comparisons/alternatives, purchase/sale, official network, creators/communities, and thread traversal. |
+| Quote/reply/source traversal | Pass | Qualified-seed traversal explicitly inspects source posts, quote posts, replies, and conversation participants. |
+| Related-account recursion | Pass | Explicitly evidenced mentions, replies, quotes, profile links, and official-network links receive exactly one hop; second-hop expansion is prohibited. |
+| Strict view qualification | Pass | Qualification requires an observed public numeric `views > 10000`; exactly 10,000 and missing views are excluded. |
+| Post-ID deduplication | Pass | `post_id` is the exclusive identity, with conflicts resolved by the newest verified `observed_at` and no candidate overwrite. |
+| No invented metrics | Pass | Search snippets cannot verify a record; unavailable views are `missing_required_view`, engagement is recorded only when observed, and no data is fabricated. |
+| Linked Excel dashboard | Pass | The Dashboard uses formula/pivot/Power Query-linked KPIs and charts reconciled to Posts, with no manually copied totals. |
+| Formula/filter/link/visual QA | Pass | The workbook contract and checklist require table filters, frozen headers, typed values, live links, formula-error scans, chart/source checks, and rendered visual QA. |
+| Natural Japanese; verbatim originals | Pass | Japanese UI is not applicable to this English Scenario 1 brief; original text is explicitly verbatim and analytical/normalized fields remain separate. |
+| Monitoring authorization boundary | Pass | Monitoring is not authorized and the checklist prohibits a scheduler, automation, or recurring research task. |
+
+The second rerun passes the exact date-window rule, the stopping rule, and all
+Scenario 1 contract items. It resolves the first rerun's historical strict-date
+failure without altering either earlier raw output.
 
 Scenario-specific evidence: the output excludes exactly 10,000 views, keeps
 unobserved views out of formal records, preserves original-text and analysis
 fields separately, limits relationship traversal to one hop, sorts by
 published_at then post_id descending. Its stopping assessment is a historical
-failure resolved by the first rerun; the first rerun's strict-date assessment
-fails, so a second fresh rerun is pending for exact date-window behavior.
+failure resolved by the first rerun, and the first rerun's strict-date failure
+is historical evidence resolved by the second rerun.
 
 ## Scenario 2 — Japanese beauty
 
@@ -654,7 +809,7 @@ order.
 
 | Baseline gap | Exact corrective passage | Guided evidence |
 | --- | --- | --- |
-| Scenario 1 first rerun: exact observation window | [SKILL.md line 14](../SKILL.md#start-with-the-brief): “Set `date_end`/as-of to the actual observation/execution timestamp; never round it forward into future time. Derive `date_start` from that exact timestamp and the requested window.” | The first rerun instead fixes `date_end` at `2026-08-31T23:59:59+09:00`; its strict-date assessment fails and a second fresh rerun is pending. |
+| Scenario 1 first rerun: exact observation window | [SKILL.md line 14](../SKILL.md#start-with-the-brief): “Set `date_end`/as-of to the actual observation/execution timestamp; never round it forward into future time. Derive `date_start` from that exact timestamp and the requested window.” | The first rerun's `2026-08-31T23:59:59+09:00` end is a historical strict-date failure; the second rerun uses the exact `2026-08-31T14:34:33+09:00` observation timestamp and matching derived start. |
 | Scenario 1: related-account recursion | [SKILL.md line 21](../SKILL.md#research-matrix-and-qualification): “Discover related accounts through explicit mentions, reply/quote participants, profile links, and official-network links; recurse one hop from each qualifying seed, then stop unless the brief authorizes a wider depth.” | Scenario 1 step 5 follows that rule. |
 | Scenario 1: natural Japanese/verbatim originals | [SKILL.md line 27](../SKILL.md#research-matrix-and-qualification): “Keep verbatim original text immutable: store normalizations, translations, summaries, stance, and analysis in separate fields.” [Japanese beauty preset line 3](../references/japanese-beauty-preset.md): “日本語の自然な見出しを使う（例: `調査概要`、`投稿一覧`、`集計`、`除外・確認ログ`）。原文は `投稿本文（原文）` にそのまま残し、正規化・翻訳・分析メモを別列に置く。” | Scenario 1 keeps the original text verbatim and uses English labels because its brief does not request Japanese; the cited preset supplies the natural-Japanese UI rule when that locale is requested. |
 | Scenario 1: monitoring authorization | [SKILL.md line 35](../SKILL.md#delivery-and-updates): “Do not create a recurring monitor, schedule, or automation ... Create one only after explicit authorization that states cadence, scope, destination, and notification preference.” [SKILL.md line 52](../SKILL.md#common-mistakes) reinforces that weekly wording is not authorization. | Scenario 1 declares monitoring unauthorized. |
@@ -670,8 +825,8 @@ order.
 
 The original Scenario 1 raw output remains a historical stopping-rule failure:
 it treats exhausted lanes as a standalone completion condition. The first
-rerun resolves that failure, but its `2026-08-31T23:59:59+09:00` date end is
-future-rounded rather than the actual observation/execution timestamp.
-`SKILL.md` now requires the exact timestamp and a date start derived from it.
-A second fresh rerun is pending for exact date-window behavior; both raw
-outputs remain verbatim evidence.
+rerun resolves that failure, but its `2026-08-31T23:59:59+09:00` end remains a
+historical strict-date failure. The second rerun uses the exact
+`2026-08-31T14:34:33+09:00` observation timestamp and matching derived start,
+passing both the observation-window and stopping rules with all Scenario 1
+contract items. All three raw outputs remain verbatim evidence.
