@@ -1,0 +1,6 @@
+{
+  "brief": {"view_threshold": {"operator": "gte", "value": 5000}},
+  "records": [
+    {"post_id": "900000000000000004", "post_url": "https://x.com/demo/status/900000000000000004", "published_at": "2026-08-04T09:00:00+09:00", "views": 5000, "creator_url": "https://x.com/demo", "verification_state": "verified"}
+  ]
+}

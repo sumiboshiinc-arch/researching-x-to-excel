@@ -43,6 +43,16 @@ class ValidateRecordsTest(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("invalid_views", {item["code"] for item in json.loads(result.stdout)["errors"]})
 
+    def test_gt_rejects_views_exactly_at_threshold(self):
+        result = self.run_validator("exact_gt_threshold.json")
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("view_threshold", {item["code"] for item in json.loads(result.stdout)["errors"]})
+
+    def test_gte_accepts_views_exactly_at_threshold(self):
+        result = self.run_validator("exact_gte_threshold.json")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout), {"ok": True, "errors": []})
+
 
 if __name__ == "__main__":
     unittest.main()
