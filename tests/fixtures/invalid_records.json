@@ -2,6 +2,6 @@
   "brief": {"view_threshold": {"operator": "gt", "value": 5000}},
   "records": [
     {"post_id": "900000000000000001", "post_url": "https://x.com/demo/status/900000000000000001", "published_at": "2026-08-01T09:00:00+09:00", "views": 6000, "creator_url": "https://x.com/demo"},
-    {"post_id": "900000000000000001", "post_url": "https://example.com/not-x", "published_at": "2026-08-02T09:00:00+09:00", "views": 5000, "creator_url": ""}
+    {"post_id": "900000000000000001", "post_url": "https://example.com/not-x", "published_at": "2026-08-02T09:00:00+09:00", "views": 5000, "creator_url": "", "verification_state": "candidate"}
   ]
 }

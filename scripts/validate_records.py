@@ -16,7 +16,7 @@ def validate_payload(payload: dict) -> list[dict[str, str]]:
     threshold = payload.get("brief", {}).get("view_threshold", {})
     operator = threshold.get("operator")
     limit = threshold.get("value")
-    if operator not in {"gt", "gte"} or not isinstance(limit, (int, float)):
+    if operator not in {"gt", "gte"} or isinstance(limit, bool) or not isinstance(limit, (int, float)):
         errors.append({"code": "invalid_threshold", "message": "view_threshold requires operator gt/gte and a numeric value"})
         return errors
 
@@ -34,8 +34,15 @@ def validate_payload(payload: dict) -> list[dict[str, str]]:
         if not str(row.get("creator_url", "")).startswith("https://x.com/"):
             errors.append({"code": "missing_creator_url", "message": f"row {index}: valid creator URL required"})
 
+        if row.get("verification_state") != "verified":
+            errors.append({"code": "unverified_views", "message": f"row {index}: verification_state must be verified"})
+
         views = row.get("views")
-        qualifies = isinstance(views, (int, float)) and (views > limit if operator == "gt" else views >= limit)
+        if isinstance(views, bool) or not isinstance(views, (int, float)):
+            errors.append({"code": "invalid_views", "message": f"row {index}: views must be numeric"})
+            qualifies = False
+        else:
+            qualifies = views > limit if operator == "gt" else views >= limit
         if not qualifies:
             errors.append({"code": "view_threshold", "message": f"row {index}: views do not satisfy {operator} {limit}"})
 

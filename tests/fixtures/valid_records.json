@@ -1,7 +1,7 @@
 {
   "brief": {"view_threshold": {"operator": "gt", "value": 5000}},
   "records": [
-    {"post_id": "900000000000000002", "post_url": "https://x.com/demo/status/900000000000000002", "published_at": "2026-08-02T09:00:00+09:00", "views": 12000, "creator_url": "https://x.com/demo"},
-    {"post_id": "900000000000000001", "post_url": "https://x.com/demo2/status/900000000000000001", "published_at": "2026-08-01T09:00:00+09:00", "views": 6000, "creator_url": "https://x.com/demo2"}
+    {"post_id": "900000000000000002", "post_url": "https://x.com/demo/status/900000000000000002", "published_at": "2026-08-02T09:00:00+09:00", "views": 12000, "creator_url": "https://x.com/demo", "verification_state": "verified"},
+    {"post_id": "900000000000000001", "post_url": "https://x.com/demo2/status/900000000000000001", "published_at": "2026-08-01T09:00:00+09:00", "views": 6000, "creator_url": "https://x.com/demo2", "verification_state": "verified"}
   ]
 }
