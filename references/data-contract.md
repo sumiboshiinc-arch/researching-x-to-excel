@@ -3,12 +3,18 @@
 Use `ResearchBrief` before collecting:
 
 ```text
-topic, locale, languages, public_only, date_start, date_end, timezone,
-qualification_metric, qualification_operator, qualification_value, cap,
-output_language, workbook_mode, monitoring_authorized
+topic, purpose, seed_terms, seed_accounts, exclusions, locale, languages,
+public_only, date_start, date_end, timezone, qualification_metric,
+qualification_operator, qualification_value, target_count, cap, sort_rule,
+accepted_post_types, required_evidence, required_metrics, output_language,
+preset, workbook_mode, existing_workbook_path, monitoring_authorized
 ```
 
 `workbook_mode` is `new` or `incremental`. `monitoring_authorized` is false unless explicit authorization supplies cadence, scope, destination, and notifications.
+
+Authorized monitoring also records `prior_observation_at` or `initial_lookback`, workbook path, unchanged qualification rule, sheets to update, `dedupe_key=post_id`, formula/filter/link/chart/dashboard QA, and a zero-new-results report. It never silently broadens scope or thresholds.
+
+The validator prefers the `{ "brief": ..., "records": [...] }` envelope. For legacy root arrays, pass `--operator` and `--value` plus optional date bounds; implicit qualification defaults are forbidden.
 
 Each `PostRecord` has these required fields:
 
@@ -24,7 +30,7 @@ Keep candidates, verified records, and exclusions distinct. A candidate becomes 
 
 Use `post_id` as the identity key. When observations for one ID disagree, prefer the newest *verified* observation by `observed_at`; retain an older value only when the newer observation lacks that field. Never merge a candidate value over a verified value or conceal a conflict. Sort formal records by `published_at` descending, then `post_id` descending.
 
-Interpret comparison operators literally: `gt` is strictly greater than the value; `gte` includes the value. Store metrics as numbers, not display strings. Preserve `original_text` exactly; normalized names and analysis belong elsewhere.
+Interpret comparison operators literally: `gt` is strictly greater than the value; `gte` includes the value. Store finite metrics as numbers, not display strings. Timestamps are timezone-aware ISO 8601 and date-window bounds are inclusive. Creator URLs are strict profile URLs, not the X root. Sort equal timestamps by numeric `post_id` descending. Preserve `original_text` exactly; normalized names and analysis belong elsewhere.
 
 ```json
 {

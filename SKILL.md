@@ -9,7 +9,7 @@ Turn a research brief into evidence-backed public-X records and a linked, filter
 
 ## Start with the brief
 
-Record the topic, locale/languages, public-only scope, date window and timezone, qualification rule (including whether a metric is `gt` or `gte`), cap, required output language, and update versus new-workbook intent. Preserve an existing workbook's stated criteria; if a required criterion is absent or ambiguous, ask rather than invent one.
+Record topic/purpose; seed terms/accounts; exclusions; locale/languages; public-only scope; date window/timezone; qualification rule (`gt` or `gte`); target count/cap; sort rule; accepted post types; required evidence/metrics; output language/preset; and new versus existing workbook path. Preserve an existing workbook's criteria; ask rather than invent a material missing choice.
 
 Set `date_end`/as-of to the actual observation/execution timestamp; never round it forward into future time. Derive `date_start` from that exact timestamp and the requested window.
 
@@ -22,7 +22,7 @@ Set `date_end`/as-of to the actual observation/execution timestamp; never round 
 
 Build independent lanes before searching: direct topic and spelling variants; brands/products; benefits, complaints, comparisons, alternatives, purchase/sale terms; official accounts and announcements; creators/communities; and quote, reply, source-post, and conversation-thread traversal. Record each lane and query on the candidate. Discover related accounts through explicit mentions, reply/quote participants, profile links, and official-network links; recurse one hop from each qualifying seed, then stop unless the brief authorizes a wider depth.
 
-Work in successive rounds with distinct queries and required traversal. Stop only when a user limit is reached, the requested target count of qualified records is reached, or three consecutive substantive zero-yield rounds occur. A substantive zero-yield round exhausts untried relevant queries and traversal without finding a new verified qualifying record. Exhaustion is not a standalone completion condition: it contributes to a substantive zero-yield round; productive work cannot be skipped. Do not stop productive lanes merely because an earlier phase ends. Never relax a date, public-access, relevance, cap, or metric threshold to fill a target count.
+Work in successive rounds with distinct queries and traversal. Stop only when a user limit or target is reached, or three consecutive substantive zero-yield rounds occur. Every substantive round includes at least one previously unexplored lane, account cluster, or relationship edge; repeating a query is not a new round. Any new verified qualifying post ID resets the counter. Do not stop productive lanes merely because an earlier phase ends or relax criteria to fill a target.
 
 Create a candidate record first. Verify the public post view, canonical post ID, published timestamp/timezone, original text, and required metric at the source. Include a metric only when observed; blank is unavailable, never zero or an estimate. Exclude a candidate with a missing required view count; log it rather than inferring from likes or engagement. Mark restricted, deleted, or unavailable posts with their status and retain the available URL/ID without treating them as verified.
 
@@ -34,7 +34,7 @@ Create or update only a safe working copy when a workbook is malformed, protecte
 
 Before delivery, inspect formula errors, table filters, link targets, numeric cells, sort order, dashboard links, charts, and rendered workbook appearance. State uncertainty, source limitations, exclusions, and verification timestamps plainly. If required search access, an X export, or credentials are unavailable, provide the exact missing access, candidate/log template, and handoff steps; do not fabricate a dataset.
 
-Keep credentials, cookies, workbooks, browser profiles, and research data outside this repository; never commit or copy them into it. Do not create a recurring monitor, schedule, or automation from a research/update request. Create one only after explicit authorization that states cadence, scope, destination, and notification preference.
+Keep credentials, cookies, workbooks, browser profiles, and research data outside this repository; never commit or copy them into it. Do not create recurring automation from a research/update request. Create it only after explicit authorization states cadence, scope, destination, and notification preference. Its contract also fixes prior observation/initial lookback, workbook path, unchanged thresholds, sheets to update, post-ID dedupe, workbook QA, and a zero-new report.
 
 ## Quick reference
 

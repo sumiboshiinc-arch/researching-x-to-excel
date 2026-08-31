@@ -1,15 +1,15 @@
 # Excel deliverable
 
-Use seven default sheets unless an existing workbook requires its established structure:
+Use these seven sections/sheets one-to-one unless an existing workbook has compatible localized names:
 
-1. **Research Summary** — brief, window/timezone, criteria, source limits, counts, and exclusions.
-2. **Posts** — all `PostRecord` fields plus rank, normalized brand/product, topic tags, and data-quality note.
-3. **Search & Candidate Log** — candidate ID/URL, query, discovery lane, checked time, decision, and exclusion reason.
-4. **Relationship Map** — root post ID, relation type, related post/account ID and URL, evidence, traversal depth, and status.
-5. **Normalization Dictionary** — original term, normalized term, type, evidence post ID, decision, and note.
-6. **Dashboard** — formula-linked KPIs, trend, distribution, and navigation link to Posts.
-7. **Exclusions & Verification Log** — ID/URL, status/reason, required-field outcome, source, observer, and timestamp.
+1. **Dashboard / ダッシュボード** — linked KPIs, time trend, category/relevance distribution, a linked top-post view, interactive filters or slicers, and navigation to Posts.
+2. **Summary / サマリー** — brief, observation window/timezone, coverage, accepted/rejected counts, findings, and limitations.
+3. **Posts / 投稿一覧** — one qualifying post per row, all `PostRecord` fields, rank, normalization, tags, and quality note.
+4. **Source & Quote Analysis / 引用元分析** — quote, reply, parent/source relationships and both URLs.
+5. **Research Angles & Candidate Log / 調査角度・候補ログ** — lanes, terms, accounts, substantive rounds, candidate counts, yield, decisions, and reasons.
+6. **Additional Candidates / 追加調査候補** — near-threshold, unverified, inaccessible, context-only, and other excluded candidates with reasons.
+7. **Methodology & Verification / 調査方法・検証結果** — definitions, timestamps, sources, limits, stopping evidence, validation results, and QA outcomes.
 
-Make Posts and every log table an Excel Table with filters and frozen headers. Use required columns above; maintain active clickable post and creator URLs. Keep timestamps and metrics typed as dates/numbers. Link Dashboard KPIs to the Posts table through formulas, pivots, or Power Query—never manually copied totals. Include a trend chart by week/month and a distribution chart (for example topic, brand, post type, or stance); charts must reference the linked data.
+Do not collapse or substitute these required sections; Japanese equivalents may be combined labels but must preserve each role. Make Posts and all detail/log ranges Excel Tables with filters and frozen headers. Keep clickable post/creator URLs and typed dates/numbers. Link Dashboard KPIs, charts, top posts, and controls to the Posts table through formulas, pivots, Power Query, or slicer-capable Tables/Pivots—never copied totals. Include linked trend and distribution charts. Filters/slicers must materially filter the linked view.
 
-For incremental work, preserve existing sheet order, tables, calculated columns, filters, formulas, styles, validations, named ranges, hyperlinks, charts, and sort order. Insert rows through the established table/range; do not overwrite formulas or manual values. Before delivery, inspect formula errors (`#REF!`, `#VALUE!`, `#DIV/0!`, and similar), validate links and filters, and render/open the workbook for visual QA of clipping, headers, charts, and dashboard readability.
+For incremental work, preserve compatible order, tables, calculated columns, filters/slicers, formulas, styles, validations, named ranges, hyperlinks, charts, and sort order. Insert through established tables. Before delivery, inspect formula errors, table/filter/slicer behavior, links, top-post ordering, chart ranges, and dashboard totals; render/open every sheet for clipping, overlap, and readability QA.

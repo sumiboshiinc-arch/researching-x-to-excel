@@ -12,10 +12,12 @@ if [ -L "$target" ]; then
     exit 0
   fi
   printf '%s\n' "Refusing to replace symlink: $target -> $current" >&2
+  printf '%s\n' "Recovery: move or remove that symlink yourself, then rerun this installer." >&2
   exit 2
 fi
 if [ -e "$target" ]; then
   printf '%s\n' "Refusing to replace existing path: $target" >&2
+  printf '%s\n' "Recovery: move the existing path to a safe backup, then rerun this installer." >&2
   exit 2
 fi
 ln -s "$repo_root" "$target"
